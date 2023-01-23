@@ -66,68 +66,94 @@ viewAllEmployees = () => {
 }
 
 addEmployee = () => {
-    return inquirer.prompt ([
-        {
-            type: 'input',
-            name: 'first_name',
-            message: "What is the employee's first name?",
-        }
-    ]),
-    return inquirer.prompt ([
-        {
-            type: 'input',
-            name: 'last_name',
-            message: "What is the employee's last name?",
-        }
-    ]),
-    return inquirer.prompt ([
-        {
-            type: 'list',
-            name: 'role',
-            message: "What is the employee's role?",
-            //TODOBJS query the database
-            choices: ['Sales Lead', 'Lead Engineer', 'Software Engineer', 'Account Manager', 'Accountant', 'Legal Team Lead', 'Lawyer', 'Customer Service']
+    db.query("SELECT * from roles"), (err, res) => {
+        let listOfRoles = res.map(role => (
+            {
+                name: role.id,
+                value: role.title
+            }
+        ));
 
+        db.query("SELECT * from empoyees WHERE manager_id is NULL"), (err, res) => {
+            let listOfManagers = res.map(manager => (
+                {
+                    name: manager.id,
+                    value: manager.first_name
+                }
+            ));
+            listOfManagers.unshift('None');
+            inquirer.prompt ([
+                {
+                    type: 'input',
+                    name: 'first_name',
+                    message: "What is the employee's first name?",
+                },
+                {
+                    type: 'input',
+                    name: 'last_name',
+                    message: "What is the employee's last name?",
+                },
+                {
+                    type: 'list',
+                    name: 'role',
+                    message: "What is the employee's role?",
+                    choices: [listOfRoles]
+                },
+                {
+                    type: 'list',
+                    name: 'role',
+                    message: "Who is the employee's manager?",
+                    choices: [listOfManagers]
+                }
+            ]).then((answers) => {
+                //TODOBJS Add to database
+                console.log('Added ${first_name} ${last_name} to the database');
+                mainPrompt();
+            });
         }
-    ]),
-    return inquirer.prompt ([
-        {
-            type: 'list',
-            name: 'role',
-            message: "Who is the employee's manager?",
-            //TODOBJS query the database
-            choices: ['None', 'John Doe', 'Mike Chan', 'Ashley Rodriguez', 'Kevin Tupik', 'Kunal Singh', 'Malia Brown']
-
-        }
-    ]),
-
-    'Added ${first_name} ${last_name} to the database';
+    };
 }
 
 updateEmployeeRole = () => {
 
-    return inquirer.prompt ([
-        {
-            type: 'list',
-            name: 'employee',
-            message: "Which employee's role do you want to update?",
-            //TODOBJS query the database
-            choices: ['None', 'John Doe', 'Mike Chan', 'Ashley Rodriguez', 'Kevin Tupik', 'Kunal Singh', 'Malia Brown']
-
-        }
-    ]),
-    return inquirer.prompt ([
-        {
-            type: 'list',
-            name: 'role',
-            message: "Which role do you want to assign the selected employee?",
-            //TODOBJS query the database
-            choices: ['None', 'John Doe', 'Mike Chan', 'Ashley Rodriguez', 'Kevin Tupik', 'Kunal Singh', 'Malia Brown']
-
-        }
-    ])
-
-    `Update employee's role`
+    db.query('SELECT * FROM employees', (err, res) => {
+        let listOfEmployees = res.map(employee => (
+            {
+                name: employee.first_name,
+                value: employee.last_name
+            }
+        ));
+        listOfEmployees.unshift('None');
+        inquirer.prompt ([
+            {
+                type: 'list',
+                name: 'employee',
+                message: "Which employee's role do you want to update?",
+                choices: [listOfEmployees]
+            }
+        ]).then((employee) => {
+            db.query('SELECT * from roles', (err, res) => {
+                let listOfRoles = res.map(role => (
+                    {
+                        name: role.title,
+                        value: role.department_id
+                    }
+                ))
+                inquirer.prompt ([
+                    {
+                        type: 'list',
+                        name: 'role',
+                        message: "Which role do you want to assign the selected employee?",
+                        choices: [listOfRoles]
+                    }
+                ]).then((role) => {
+                    
+                    console.log(`Updated employee's role`);
+                    mainPrompt();
+                });
+            });
+        });
+    });
 }
 
 viewAllRoles = () => {
@@ -140,30 +166,37 @@ viewAllRoles = () => {
 }
 
 addRole = () => {
-    return inquirer.prompt ([
-        {
-            type: 'input',
-            name: 'role',
-            message: "What is the name of the role?",
-        }
-    ]),
-    return inquirer.prompt ([
-        {
-            type: 'input',
-            name: 'salary',
-            message: "What is the salary of the role?",
-        }
-    ]),
-    return inquirer.prompt ([
-        {
-            type: 'list',
-            name: 'department',
-            message: "Which department does the role belong to?",
-            //TODOBJS query the database
-            choices: ['Engineering', 'Finance', 'Legal', 'Sales', 'Service']
-        }
-        'Added ${customer service} to the database.'
-    ]),
+    db.query('SELECT * FROM departments', (err, res) => {
+        let listOfDepartments = res.map(department => (
+            {
+                name: department.id,
+                value: department.name
+            }
+        ));
+
+        inquirer.prompt ([
+            {
+                type: 'input',
+                name: 'role',
+                message: "What is the name of the role?",
+            },
+            {
+                type: 'input',
+                name: 'salary',
+                message: "What is the salary of the role?",
+            },
+            {
+                type: 'list',
+                name: 'department',
+                message: "Which department does the role belong to?",
+                choices: [listOfDepartments]
+            }
+        ]).then((answers) => {
+            
+            console.log('Added ${customer service} to the database.');
+            mainPrompt();
+        });
+    });
 }
 
 viewAllDepartments = () => {
@@ -174,17 +207,19 @@ viewAllDepartments = () => {
 }
 
 addDepartment = () => {
-    return inquirer.prompt ([
+    inquirer.prompt ([
         {
             type: 'input',
             name: 'department',
             message: "What is the name of the department?",
         }
-    ])
+    ]).then((answers) => {
 
-    'Added ${input} to the database '
+        console.log('Added ${input} to the database');
+        mainPrompt();
+    });
 }
 
 quit = () => {
-
+    console.log('Thanks for using the Employee Database!');
 }
