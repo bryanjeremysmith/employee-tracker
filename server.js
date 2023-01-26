@@ -25,29 +25,29 @@ app.listen(PORT, () => {
 });
 
 
-const mainPrompt = () => {
-    return inquirer.prompt ([
+function mainPrompt(){
+    inquirer.prompt ([
         {
             type: 'list',
-            name: 'role',
+            name: 'choice',
             message: "What would you like to do?",
             choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department', 'Quit']
         }
     ])
     .then(answer => {
-        if (answer == 'View all Employees'){
+        if (answer.choice == 'View All Employees'){
             viewAllEmployees();
-        }else if (answer == 'Add Employee'){
+        }else if (answer.choice == 'Add Employee'){
             addEmployee();
-        }else if (answer == 'Update Employee Role'){
+        }else if (answer.choice == 'Update Employee Role'){
             updateEmployeeRole();
-        }else if (answer == 'View All Roles'){
+        }else if (answer.choice == 'View All Roles'){
             viewAllRoles();
-        }else if (answer == 'Add Role'){
+        }else if (answer.choice == 'Add Role'){
             addRole();
-        }else if(answer == 'View All Departments'){
+        }else if(answer.choice == 'View All Departments'){
             viewAllDepartments();
-        }else if (answer == 'Add Department'){
+        }else if (answer.choice == 'Add Department'){
             addDepartment();
         }else{
             quit();
@@ -55,8 +55,8 @@ const mainPrompt = () => {
     })
 };
 
-viewAllEmployees = () => {
-    db.query(`SELECT employee.id, first_name AS "First Name", last_name AS "Last Name", title AS Title, CONCAT('$', FORMAT (salary, 0)) AS Salary, department.name FROM employee 
+function viewAllEmployees() {
+    db.query(`SELECT first_name AS "First Name", last_name AS "Last Name", title AS Title, CONCAT('$', FORMAT (salary, 0)) AS Salary, department.name FROM employee 
     INNER JOIN role ON employee.role_id = role.id 
     INNER JOIN department ON role.department_id = department.id 
     ORDER BY last_name ASC`, (err, res) => {
@@ -65,7 +65,7 @@ viewAllEmployees = () => {
     });
 }
 
-addEmployee = () => {
+function addEmployee() {
     db.query("SELECT * from role"), (err, res) => {
         let listOfRoles = res.map(role => (
             {
@@ -122,7 +122,7 @@ addEmployee = () => {
     };
 }
 
-updateEmployeeRole = () => {
+function updateEmployeeRole() {
     db.query('SELECT * FROM employee', (err, res) => {
         if(err)
         {
@@ -180,10 +180,10 @@ updateEmployeeRole = () => {
     });
 }
 
-viewAllRoles = () => {
-    db.query(`SELECT roles.id AS role_id, roles.title AS Title, salary AS Salary, departments.name AS department FROM roles 
-    INNER JOIN departments ON roles.dept_id = departments.dept_id 
-    ORDER BY roles.role_id ASC`, (err, res) => {
+function viewAllRoles() {
+    db.query(`SELECT role.id AS role_id, role.title AS Title, salary AS Salary, department.name AS department FROM role 
+    INNER JOIN department ON role.id = department.id 
+    ORDER BY role.role_id ASC`, (err, res) => {
         if(err)
         {
             console.error(err);
@@ -196,8 +196,8 @@ viewAllRoles = () => {
     });
 }
 
-addRole = () => {
-    db.query('SELECT * FROM departments', (err, res) => {
+function addRole(){
+    db.query('SELECT * FROM department', (err, res) => {
         if(err)
         {
             console.error(err);
@@ -236,8 +236,8 @@ addRole = () => {
     });
 }
 
-viewAllDepartments = () => {
-    db.query('SELECT id AS department_id, departments.name AS department_name FROM departments', (err, res) => {
+function viewAllDepartments() {
+    db.query('SELECT id AS "Department ID", department.name AS "Department Name" FROM department', (err, res) => {
         if(err)
         {
             console.error(err);
@@ -250,7 +250,7 @@ viewAllDepartments = () => {
     });
 }
 
-addDepartment = () => {
+function addDepartment() {
     inquirer.prompt ([
         {
             type: 'input',
@@ -272,7 +272,9 @@ addDepartment = () => {
     mainPrompt();
 }
 
-quit = () => {
-    db.quit();
+function quit(){
     console.log('Thanks for using the Employee Database!');
+    return;
 }
+
+mainPrompt();
