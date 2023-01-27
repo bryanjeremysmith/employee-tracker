@@ -35,6 +35,8 @@ Then run:
 
 <pre>node server.js</pre>
 
+[employee-tracker.webm](https://user-images.githubusercontent.com/113069298/215155159-2398dfea-e9e4-4bad-9711-04746b7f310f.webm)
+
 ## License 
 
 This project is covered under the following license: MIT License
