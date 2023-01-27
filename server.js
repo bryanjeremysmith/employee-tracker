@@ -14,7 +14,7 @@ const db = mysql.createConnection(
       host: 'localhost',
       // MySQL username,
       user: 'root',
-      password: 'pass1234',
+      password: 'password1234',
       database: 'employee_db'
     },
     console.log(`Connected to the employee_db database.`)
@@ -113,7 +113,7 @@ function addEmployee() {
                     },
                     {
                         type: 'list',
-                        name: 'newRole',
+                        name: 'role',
                         message: `What is the employee's role?`,
                         choices: listOfRoles
                     },
@@ -124,19 +124,23 @@ function addEmployee() {
                         choices: listOfManagers
                     }
                 ]).then((answers) => {
+                    if(answers.manager_id == 'None')
+                    {
+                        answers.manager_id = null;
+                    }
                     db.query("INSERT INTO employee SET ?",
                     {
-                        first_name: answer.first_name,
-                        last_name: answer.last_name,
-                        role_id: answer.role.value,
-                        manager_id: answer.manager_id.value
+                        first_name: answers.first_name,
+                        last_name: answers.last_name,
+                        role_id: answers.role,
+                        manager_id: answers.manager_id
                     },
                     (err, res) => {
                         if(err){
                             console.error(err);
                             return;
                         }
-                        console.log('Added ' + answer.first_name + ' ' + asnwer.last_name + ' to the database');
+                        console.log('Added ' + answers.first_name + ' ' + answers.last_name + ' to the database');
                         mainPrompt();
                     });
                 });
@@ -198,15 +202,14 @@ function updateEmployeeRole() {
                         mainPrompt();
                     });                            
                 });
-            }
             });
         });
     });
 }
 
 function viewAllRoles() {
-    db.query(`SELECT role.id AS "Role ID", role.title AS Title, CONCAT('$', FORMAT (salary, 0)) AS Salary, department.name AS department FROM role 
-    INNER JOIN department ON role.id = department.id 
+    db.query(`SELECT role.id AS "Role ID", role.title AS Title, CONCAT('$', FORMAT (salary, 0)) AS Salary, department.name 
+    AS Department FROM role INNER JOIN department ON role.department_id = department.id 
     ORDER BY role.department_id ASC`, (err, res) => {
         if(err) {
             console.error(err);
@@ -228,8 +231,8 @@ function addRole(){
 
         listOfDepartments = res.map(department => (
             {
-                name: department.id,
-                value: department.name
+                name: department.name,
+                value: department.id
             }
         ));
         
@@ -251,12 +254,13 @@ function addRole(){
                 choices: listOfDepartments
             }
         ]).then((answers) => {
-            db.query('INSERT INTO department SET ?', { title: answers.role, salary: answers.salary, department_id: answers.department }, (err, res) =>{
+            console.log(answers.department);
+            db.query('INSERT INTO role SET ?', { title: answers.role, salary: answers.salary, department_id: answers.department }, (err, res) =>{
                 if(err) {
                     console.error(err);
                     return;
                 }
-                console.log('Added ${customer service} to the database.');
+                console.log('Added ' + answers.role + ' to the database.');
                 mainPrompt();
             });
         });
